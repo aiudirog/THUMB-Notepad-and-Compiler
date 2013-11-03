@@ -76,10 +76,23 @@ class App:
             self.do_error("The file "+missing_file+" is missing. Compile aborted.")
             return False
             
-        file = tkFileDialog.asksaveasfile(mode='w')
-        os.chdir(self.path)
-        #need to write the text to temp file.
+        open_file = tkFileDialog.asksaveasfile(mode='w')
+        #os.chdir(self.path)
+        name_of_file = open_file.name
+        
+        source = os.path.join(self.path,"temp.asm")
+        
+        with open(os.path.join(self.path,"temp.asm"), "w+") as data:
+            textoutput = self.text.get(0.0, END)
+            data.write(textoutput.rstrip())
+            data.write("\n")
+        
         os.system("as -mthumb -mthumb-interwork "+source)
+        if os.path.isfile(name_of_file):
+            os.remove(name_of_file)
+        os.system("objcopy -O binary a.out "+name_of_file)
+        os.remove(source)
+        os.remove("a.out")
         
     def __init__(self):
             # Set up the screen, the title, and the size.

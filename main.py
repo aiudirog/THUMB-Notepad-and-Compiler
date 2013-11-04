@@ -3,6 +3,7 @@ import tkFileDialog
 from Tkinter import *
 import os.path
 import sys
+import subprocess
 
 def we_are_frozen():
     # All of the modules are built-in to the interpreter, e.g., by py2exe
@@ -79,6 +80,9 @@ class App:
         open_file = tkFileDialog.asksaveasfile(mode='w')
         #os.chdir(self.path)
         name_of_file = open_file.name
+        open_file.close()
+        os.remove(name_of_file)
+        #Maybe I should find a better way of getting a save as name....:P
         
         source = os.path.join(self.path,"temp.asm")
         
@@ -87,10 +91,31 @@ class App:
             data.write(textoutput.rstrip())
             data.write("\n")
         
-        os.system("as -mthumb -mthumb-interwork "+source)
-        if os.path.isfile(name_of_file):
-            os.remove(name_of_file)
-        os.system("objcopy -O binary a.out "+name_of_file)
+        as_proccess = subprocess.Popen(["as", "-mthumb", "-mthumb-interwork", "--fatal-warnings", source], bufsize=2048, shell=True, stderr=subprocess.PIPE)
+        (as_output, as_err) = as_proccess.communicate()
+        
+        as_proccess.wait()
+        if as_err != "":
+            self.do_error(as_err)
+            os.remove(source)
+            os.remove("a.out")
+            return False
+
+      
+        
+        
+        objcopy_proccess = subprocess.Popen("objcopy -O binary a.out "+name_of_file,  bufsize=2048, shell=True, stderr=subprocess.PIPE)
+        (aobjcopy_output, objcopy_err) = objcopy_proccess.communicate()
+        
+        objcopy_proccess.wait()
+        if objcopy_err != "":
+            self.do_error(objcopy_err)
+            os.remove(source)
+            os.remove("a.out")
+            return False
+            
+        
+        #clean-up temp files
         os.remove(source)
         os.remove("a.out")
         

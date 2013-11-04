@@ -101,8 +101,6 @@ class App:
             os.remove("a.out")
             return False
 
-      
-        
         
         objcopy_proccess = subprocess.Popen("objcopy -O binary a.out "+name_of_file,  bufsize=2048, shell=True, stderr=subprocess.PIPE)
         (aobjcopy_output, objcopy_err) = objcopy_proccess.communicate()
